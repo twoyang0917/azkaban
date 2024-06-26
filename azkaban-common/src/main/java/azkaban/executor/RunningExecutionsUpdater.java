@@ -162,8 +162,25 @@ public class RunningExecutionsUpdater {
       }
     }
     if (sendUnresponsiveEmail) {
-      final Alerter mailAlerter = this.alerterHolder.get("email");
-      mailAlerter.alertOnFailedUpdate(executor, entry.getValue(), e);
+      for(String alertType: this.alerterHolder.get()) {
+        final Alerter alerter = this.alerterHolder.get(alertType);
+        if (alerter == null) {
+          logger.error("Alerter " + alertType + " is not found.");
+          continue;
+        }
+
+        if (alertType.equals("email") && !this.alerterHolder.isEnabledMailAlerter()) {
+          logger.info("Email alerter is disabled.");
+          continue;
+        }
+
+        try {
+          alerter.alertOnFailedUpdate(executor, entry.getValue(), e);
+          logger.info("Alerted by " + alertType);
+        } catch (final Exception ex) {
+          logger.error("Failed to alert by " + alertType);
+        }
+      }
     }
   }
 

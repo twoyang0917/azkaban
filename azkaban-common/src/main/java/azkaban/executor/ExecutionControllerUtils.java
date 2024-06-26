@@ -110,49 +110,55 @@ public class ExecutionControllerUtils {
   public static void alertUserOnFlowFinished(final ExecutableFlow flow, final AlerterHolder
       alerterHolder, final String[] extraReasons) {
     final ExecutionOptions options = flow.getExecutionOptions();
-    final Alerter mailAlerter = alerterHolder.get("email");
     if (flow.getStatus() != Status.SUCCEEDED) {
-      if (options.getFailureEmails() != null && !options.getFailureEmails().isEmpty()) {
-        try {
-          mailAlerter.alertOnError(flow, extraReasons);
-        } catch (final Exception e) {
-          logger.error("Failed to alert on error for execution " + flow.getExecutionId(), e);
-        }
-      }
-      if (options.getFlowParameters().containsKey("alert.type")) {
-        final String alertType = options.getFlowParameters().get("alert.type");
+      for (String alertType: alerterHolder.get()) {
+        boolean readyToAlert = false;
         final Alerter alerter = alerterHolder.get(alertType);
-        if (alerter != null) {
+        if (alerter == null) {
+          logger.error("Alerter " + alertType + " is not found.");
+          continue;
+        }
+        if (alertType.equals("email")) {
+          if (
+                  alerterHolder.isEnabledMailAlerter()
+                  && options.getFailureEmails() != null
+                  && !options.getFailureEmails().isEmpty()) {
+            readyToAlert = true;
+          }
+        } else { readyToAlert = true; }
+
+        if (readyToAlert) {
           try {
             alerter.alertOnError(flow, extraReasons);
+            logger.info("Alerted on error by " + alertType + " for execution " + flow.getExecutionId());
           } catch (final Exception e) {
-            logger.error("Failed to alert on error by " + alertType + " for execution " + flow
-                .getExecutionId(), e);
+            logger.error("Failed to alert on error by " + alertType + " for execution " + flow.getExecutionId(), e);
           }
-        } else {
-          logger.error("Alerter type " + alertType + " doesn't exist. Failed to alert.");
         }
       }
     } else {
-      if (options.getSuccessEmails() != null && !options.getSuccessEmails().isEmpty()) {
-        try {
-          mailAlerter.alertOnSuccess(flow);
-        } catch (final Exception e) {
-          logger.error("Failed to alert on success for execution " + flow.getExecutionId(), e);
-        }
-      }
-      if (options.getFlowParameters().containsKey("alert.type")) {
-        final String alertType = options.getFlowParameters().get("alert.type");
+      for (String alertType: alerterHolder.get()) {
+        boolean readyToAlert = false;
         final Alerter alerter = alerterHolder.get(alertType);
-        if (alerter != null) {
+        if (alerter == null) {
+          logger.error("Alerter " + alertType + " is not found.");
+          continue;
+        }
+        if (alertType.equals("email")) {
+          if (alerterHolder.isEnabledMailAlerter()
+                  && options.getSuccessEmails() != null
+                  && !options.getSuccessEmails().isEmpty()) {
+            readyToAlert = true;
+          }
+        } else { readyToAlert = true; }
+
+        if (readyToAlert) {
           try {
             alerter.alertOnSuccess(flow);
+            logger.info("Alerted on success by " + alertType + " for execution " + flow.getExecutionId());
           } catch (final Exception e) {
-            logger.error("Failed to alert on success by " + alertType + " for execution " + flow
-                .getExecutionId(), e);
+            logger.error("Failed to alert on success by " + alertType + " for execution " + flow.getExecutionId(), e);
           }
-        } else {
-          logger.error("Alerter type " + alertType + " doesn't exist. Failed to alert.");
         }
       }
     }
@@ -169,24 +175,29 @@ public class ExecutionControllerUtils {
     final ExecutionOptions options = flow.getExecutionOptions();
     if (options.getNotifyOnFirstFailure()) {
       logger.info("Alert on first error of execution " + flow.getExecutionId());
-      final Alerter mailAlerter = alerterHolder.get("email");
-      try {
-        mailAlerter.alertOnFirstError(flow);
-      } catch (final Exception e) {
-        logger.error("Failed to send first error email." + e.getMessage(), e);
-      }
-
-      if (options.getFlowParameters().containsKey("alert.type")) {
-        final String alertType = options.getFlowParameters().get("alert.type");
+      for (String alertType: alerterHolder.get()) {
+        boolean readyToAlert = false;
         final Alerter alerter = alerterHolder.get(alertType);
-        if (alerter != null) {
+        if (alerter == null) {
+          logger.error("Alerter " + alertType + " is not found.");
+          continue;
+        }
+
+        if (alertType.equals("email")) {
+          if (alerterHolder.isEnabledMailAlerter()
+                  && options.getSuccessEmails() != null
+                  && !options.getSuccessEmails().isEmpty()) {
+              readyToAlert = true;
+          }
+        } else { readyToAlert = true; }
+
+        if (readyToAlert) {
           try {
             alerter.alertOnFirstError(flow);
+            logger.info("Alerted on first error by " + alertType + " for execution " + flow.getExecutionId());
           } catch (final Exception e) {
-            logger.error("Failed to alert by " + alertType, e);
+            logger.error("Failed to alert on first error by " + alertType + " for execution " + flow.getExecutionId(), e);
           }
-        } else {
-          logger.error("Alerter type " + alertType + " doesn't exist. Failed to alert.");
         }
       }
     }

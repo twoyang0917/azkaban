@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.log4j.Logger;
 
 
@@ -38,6 +39,7 @@ public class AlerterHolder {
 
   private static final Logger logger = Logger.getLogger(AlerterHolder.class);
   private Map<String, Alerter> alerters;
+  private boolean isEnabledMailAlerter;
 
   @Inject
   public AlerterHolder(final Props props, final Emailer mailAlerter) {
@@ -51,11 +53,19 @@ public class AlerterHolder {
 
   private Map<String, Alerter> loadAlerters(final Props props, final Emailer mailAlerter) {
     final Map<String, Alerter> allAlerters = new HashMap<>();
-    // load built-in alerters
-    allAlerters.put("email", mailAlerter);
     // load all plugin alerters
     final String pluginDir = props.getString("alerter.plugin.dir", "plugins/alerter");
     allAlerters.putAll(loadPluginAlerters(pluginDir));
+    if (allAlerters.isEmpty()) {
+      // 如果没有加载到插件，则启用内置的邮件告警。
+      this.isEnabledMailAlerter = true;
+    } else {
+      // 如果加载到插件，则根据配置决定是否启用插件的邮件告警。默认有了插件alerter就不启用邮件告警。
+      this.isEnabledMailAlerter = props.getBoolean("mail.enabled", false)
+    }
+    // 内置的邮件告警最后加载，通过配置决定是否启用。这样刚上线时可以启用多个告警方式，稳定后再禁用用邮件告警。
+    allAlerters.put("email", mailAlerter);
+
     return allAlerters;
   }
 
@@ -131,4 +141,10 @@ public class AlerterHolder {
   public Alerter get(final String alerterType) {
     return this.alerters.get(alerterType);
   }
+
+  public Set<String> get() {
+    return this.alerters.keySet();
+  }
+
+  public boolean isEnabledMailAlerter() { return this.isEnabledMailAlerter; }
 }

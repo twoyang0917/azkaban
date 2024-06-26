@@ -178,6 +178,8 @@ public class EmailMessage {
     props.put("mail.smtp.connectiontimeout", _connectionTimeout);
     props.put("mail.smtp.starttls.enable", this._tls);
     props.put("mail.smtp.ssl.trust", this._mailHost);
+    // 启用SSL安全连接，一些邮箱服务器或云厂商要求使用SSL安全连接，25端口不可用，而使用465端口安全连接。
+    props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 
     final JavaxMailSender sender = this.creator.createSender(props);
     final Message message = sender.createMessage();

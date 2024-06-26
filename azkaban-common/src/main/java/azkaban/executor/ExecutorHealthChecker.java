@@ -173,7 +173,25 @@ public class ExecutorHealthChecker {
           .getExecutionOptions().setFailureEmails(this.alertEmails));
       logger.info(String.format("Executor failure count is %d. Sending alert emails to %s.",
           this.executorFailureCount.get(executor.getId()), this.alertEmails));
-      this.alerterHolder.get("email").alertOnFailedUpdate(executor, entry.getValue(), e);
+      for(String alertType: this.alerterHolder.get()) {
+        final Alerter alerter = this.alerterHolder.get(alertType);
+        if (alerter == null) {
+          logger.error("Alerter " + alertType + " is not found.");
+          continue;
+        }
+
+        if (alertType.equals("email") && !this.alerterHolder.isEnabledMailAlerter()) {
+          logger.info("Email alerter is disabled.");
+          continue;
+        }
+
+        try {
+          alerter.alertOnFailedUpdate(executor, entry.getValue(), e);
+          logger.info("Alerted by " + alertType);
+        } catch (final Exception ex) {
+          logger.error("Failed to alert by " + alertType);
+        }
+      }
     }
   }
 }
