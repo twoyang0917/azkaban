@@ -61,7 +61,7 @@ public class AlerterHolder {
       this.isEnabledMailAlerter = true;
     } else {
       // 如果加载到插件，则根据配置决定是否启用插件的邮件告警。默认有了插件alerter就不启用邮件告警。
-      this.isEnabledMailAlerter = props.getBoolean("mail.enabled", false)
+      this.isEnabledMailAlerter = props.getBoolean("mail.enabled", false);
     }
     // 内置的邮件告警最后加载，通过配置决定是否启用。这样刚上线时可以启用多个告警方式，稳定后再禁用用邮件告警。
     allAlerters.put("email", mailAlerter);

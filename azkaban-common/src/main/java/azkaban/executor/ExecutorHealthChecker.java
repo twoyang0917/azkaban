@@ -16,6 +16,7 @@
 package azkaban.executor;
 
 import azkaban.Constants.ConfigurationKeys;
+import azkaban.alert.Alerter;
 import azkaban.utils.Pair;
 import azkaban.utils.Props;
 import java.time.Duration;
