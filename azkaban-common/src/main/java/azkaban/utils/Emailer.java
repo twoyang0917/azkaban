@@ -104,7 +104,8 @@ public class Emailer extends AbstractMailer implements Alerter {
   }
 
   @Override
-  public void alertOnSla(final SlaOption slaOption, final String slaMessage) {
+  public void alertOnSla(final SlaOption slaOption, final ExecutableFlow flow) {
+    final String slaMessage = slaOption.createSlaMessage(flow);
     final String subject =
         "SLA violation for " + getJobOrFlowName(slaOption) + " on " + getAzkabanName();
     final List<String> emailList =

@@ -30,7 +30,7 @@ public interface Alerter {
 
   void alertOnFirstError(ExecutableFlow exflow) throws Exception;
 
-  void alertOnSla(SlaOption slaOption, String slaMessage) throws Exception;
+  void alertOnSla(SlaOption slaOption, ExecutableFlow exflow) throws Exception;
 
   void alertOnFailedUpdate(Executor executor, List<ExecutableFlow> executions,
       ExecutorManagerException e);
